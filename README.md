@@ -48,13 +48,29 @@ like so:
 Creating a new Logglier instance, pointed at a http input, with the
 `:threaded => true` option will tell Logglier to deliver log messages
 for that logger in a seperate thread. Each new Logglier instance gets
-it's own delivery thread and those threads are joined at exit to ensure
+its own delivery thread and those threads are joined at exit to ensure
 log message delivery.
 
 Example:
 
     Logglier.new('https://logs.loggly.com/inputs/<id>',
                  :threaded => true)
+
+#### Deferred Threaded Delivery
+
+Threaded delivery may fail silently if you are using a preforking server
+such as Unicorn. This is because threads are lost when forking. One
+solution is wait until after the fork has occurred to initialize loggly,
+but this can be cumbersome and brittle in practice.
+
+A better alternative is to add the `:deferred => true` option which delays
+the creation of the delivery thread until the first log message is written.
+
+Example:
+
+    Logglier.new('https://logs.loggly.com/inputs/<id>',
+                 :threaded => true,
+                 :deferred => true)
 
 #### JSON Formatting
 
