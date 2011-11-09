@@ -2,6 +2,7 @@ require 'uri'
 
 require File.join(File.dirname(__FILE__), 'http', 'sync')
 require File.join(File.dirname(__FILE__), 'http', 'threaded')
+require File.join(File.dirname(__FILE__), 'http', 'deferred')
 
 module Logglier
   module Client
@@ -13,7 +14,9 @@ module Logglier
       def initialize(opts={})
         setup_input_uri(opts)
         @format = opts[:format] ? opts[:format].to_sym : nil
-        @deliverer = if opts[:threaded]
+        @deliverer = if opts[:threaded] && opts[:deferred]
+          Logglier::Client::HTTP::DeferredDeliveryThread.new(@input_uri, opts)
+        elsif opts[:threaded]
           Logglier::Client::HTTP::DeliveryThread.new(@input_uri, opts)
         else
           Logglier::Client::HTTP::NetHTTPProxy.new(@input_uri, opts)
